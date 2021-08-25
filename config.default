@@ -1,0 +1,5 @@
+# If releasy is not installed on your system, you must explicit add its path to the PYTHONPATH variable
+#export PYTHONPATH=
+
+# Include the path where the repositories were downloaded 
+# export REPOSPATH=
