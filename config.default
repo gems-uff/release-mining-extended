@@ -2,4 +2,4 @@
 #export PYTHONPATH=
 
 # Include the path where the repositories were downloaded 
-# export REPOSPATH=
+# export REPOPATH=
