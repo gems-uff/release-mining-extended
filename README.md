@@ -11,5 +11,5 @@ vim config
 
 ## Experiment 1 - Performance evaluation
 
-## Experiment 2 - Ranged-based evaluation
+## Experiment 2 - Time-based developer tuning evaluation
 

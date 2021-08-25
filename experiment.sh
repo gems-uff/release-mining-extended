@@ -1,7 +1,6 @@
 #!/bin/sh
 
-echo $PYTHONPATH
-
 . ./config
 
-echo $PYTHONPATH
+pipenv run python experiment.py
+
