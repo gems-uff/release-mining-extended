@@ -11,6 +11,7 @@ print(os.environ['PYTHONPATH'])
 import releasy
 from releasy.miner_git import GitVcs
 from releasy.miner import TagReleaseMiner, TimeVersionReleaseSorter, PathCommitMiner, RangeCommitMiner, TimeCommitMiner, TimeNaiveCommitMiner, VersionReleaseMatcher, VersionReleaseSorter, TimeReleaseSorter, VersionWoPreReleaseMatcher
+from releasy.developer import DeveloperTracker
 
 threads = 1
 
@@ -36,18 +37,22 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
         path_miner = PathCommitMiner(vcs, releases)
         path_release_set = path_miner.mine_commits()
         
+        project_size = os.path.getsize(path)
+        developers = set()
         stats = []
         n_commits = 0
         n_merges = 0
         n_releases = 0 
 
-        for release in releases:
+        for release in path_release_set:
             if f"{name}@{release.name}" not in release_exception_catalog:
                 path_commits = set(path_release_set[release.name].commits)
                 path_base_releases = [release.name.value for release in (path_release_set[release.name].base_releases or [])]
                 n_commits += len(path_commits)
                 n_merges += len(path_release_set[release.name].merges)
                 n_releases += 1
+                for developer in release.committers:
+                    developers.add(developer)
 
         elapsed_time = time.time() - start_time
         stats = {
@@ -55,6 +60,8 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
             "releases": n_releases,
             "commits": n_commits,
             "merges": n_merges,
+            "developers": len(developers),
+            "size": project_size,
             "elapsed_time": elapsed_time
         }
         project = pd.DataFrame.from_records([stats])
