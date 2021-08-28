@@ -72,11 +72,13 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
 
 if __name__ == "__main__":
     from projects import project_paths
+    from exceptions import release_exception_catalog, suffix_exception_catalog
+    
 
     projects = pd.DataFrame()
     for round in range(10):
         for project_path in project_paths:
-            project = analyze_project(project_path, "None", {}, {})
+            project = analyze_project(project_path, "None", suffix_exception_catalog, release_exception_catalog)
             project["round"] = round
             projects = projects.append(project)
     projects.to_csv("experiment_perf.csv", sep=";")
