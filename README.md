@@ -7,6 +7,13 @@ mv config.default config
 vim config
 ```
 
+Copy the `projects.default.py` file and add the projects path
+
+```
+mv projects.default.py projects.py
+vim projects.py
+```
+
 # Experiments
 
 ## Experiment 1 - Performance evaluation

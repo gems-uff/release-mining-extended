@@ -71,10 +71,13 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
         print(f" {name} - error: {e}")
 
 if __name__ == "__main__":
+    from projects import project_paths
+
     projects = pd.DataFrame()
     for round in range(10):
-        project = analyze_project("d3/d3", "None", {}, {})
-        project["round"] = round
-        projects = projects.append(project)
+        for project_path in project_paths:
+            project = analyze_project(project_path, "None", {}, {})
+            project["round"] = round
+            projects = projects.append(project)
     print(projects)
     
