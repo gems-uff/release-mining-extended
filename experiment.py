@@ -79,5 +79,7 @@ if __name__ == "__main__":
             project = analyze_project(project_path, "None", {}, {})
             project["round"] = round
             projects = projects.append(project)
-    print(projects)
+    projects.to_csv("experiment_perf.csv", sep=";")
+    projects.to_pickle("experiment_perf.zip")
+
     
