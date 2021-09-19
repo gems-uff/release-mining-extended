@@ -10,7 +10,7 @@ print(os.environ['PYTHONPATH'])
 
 import releasy
 from releasy.miner_git import GitVcs
-from releasy.miner import TagReleaseMiner, TimeVersionReleaseSorter, PathCommitMiner, RangeCommitMiner, TimeCommitMiner, TimeNaiveCommitMiner, VersionReleaseMatcher, VersionReleaseSorter, TimeReleaseSorter, VersionWoPreReleaseMatcher
+from releasy.miner import TagReleaseMiner, TimeVersionReleaseSorter, PathCommitMiner, RangeCommitMiner, TimeCommitMiner, TimeNaiveCommitMiner, TimeExpertCommitMiner, VersionReleaseMatcher, VersionReleaseSorter, TimeReleaseSorter, VersionWoPreReleaseMatcher
 
 threads = 10
 #threads = 4
@@ -36,16 +36,22 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
 
         version_sorter = TimeVersionReleaseSorter()
         releases_wbase = version_sorter.sort(releases)
-
+        #print("\n".join([f"{r.base_releases[0].name if r.base_releases else 'null'} - {r.name}" for r in releases_wbase]))
+        #exit(1)
         path_miner = PathCommitMiner(vcs, releases)
-        range_miner = RangeCommitMiner(vcs, releases_wbase)
-        time_miner = TimeCommitMiner(vcs, releases_wbase)
-        time_naive_miner = TimeNaiveCommitMiner(vcs, releases_wbase)
-    
         path_release_set = path_miner.mine_commits()
+        
+        range_miner = RangeCommitMiner(vcs, releases_wbase)
         range_release_set = range_miner.mine_commits()
+        
+        time_miner = TimeCommitMiner(vcs, releases_wbase)
         time_release_set = time_miner.mine_commits()
+        
+        time_naive_miner = TimeNaiveCommitMiner(vcs, releases_wbase)
         time_naive_release_set = time_naive_miner.mine_commits()
+
+        time_expert_miner = TimeExpertCommitMiner(vcs, releases_wbase, path_release_set)
+        time_expert_release_set = time_expert_miner.mine_commits()
         
         stats = []
         for release in releases:
@@ -54,11 +60,13 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
                 range_commits = set(range_release_set[release.name].commits)
                 time_commits = set(time_release_set[release.name].commits)
                 time_naive_commits = set(time_naive_release_set[release.name].commits)
+                time_expert_commits = set(time_expert_release_set[release.name].commits)
             
                 path_base_releases = [release.name.value for release in (path_release_set[release.name].base_releases or [])]
                 range_base_releases = [release.name.value for release in (range_release_set[release.name].base_releases or [])]
                 time_base_releases = [release.name.value for release in (time_release_set[release.name].base_releases or [])]
                 time_naive_base_releases = [release.name.value for release in (time_naive_release_set[release.name].base_releases or [])]
+                time_expert_base_releases = [release.name.value for release in (time_expert_release_set[release.name].base_releases or [])]
 
                 stats.append({
                     "project": name,
@@ -89,7 +97,12 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
                     "time_naive_base_releases": time_naive_base_releases,
                     "time_naive_tpos": len(path_commits & time_naive_commits),
                     "time_naive_fpos": len(time_naive_commits - path_commits),
-                    "time_naive_fneg": len(path_commits - time_naive_commits)
+                    "time_naive_fneg": len(path_commits - time_naive_commits),
+                    "time_expert_commits": len(time_expert_commits),
+                    "time_expert_base_releases": time_expert_base_releases,
+                    "time_expert_tpos": len(path_commits & time_expert_commits),
+                    "time_expert_fpos": len(time_expert_commits - path_commits),
+                    "time_expert_fneg": len(path_commits - time_expert_commits)
                 })
         releases = pd.DataFrame(stats)
         print(f"{time.time() - start:10} - {name}") 
