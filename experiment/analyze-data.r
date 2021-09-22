@@ -2,7 +2,7 @@ library("tidyverse")
 library("effsize")
 options(digits=4)
 
-releases <- read.csv("../data/releases.csv")
+releases <- read.csv("./data/releases.csv")
 
 releases_bproj <- releases %>% group_by(project) %>%
   summarize(
@@ -19,6 +19,23 @@ releases_bproj <- releases %>% group_by(project) %>%
     time_expert_recall = mean(time_expert_recall),
     time_expert_fmeasure = mean(time_expert_fmeasure),
   ) 
+
+releases_bproj_melted <= releases_bproj %>% 
+  gather(variable, value, -project) %>%
+  mutate(variable = factor(variable, levels = c(
+    "time_expert_precision",
+    "time_expert_recall",
+    "time_expert_fmeasure",
+    "time_naive_precision",
+    "time_naive_recall",
+    "time_naive_fmeasure",
+    "range_precision",
+    "range_recall",
+    "range_fmeasure",
+    "time_precision",
+    "time_recall",
+    "time_fmeasure"
+  )))
 
 releases_bproj %>% 
   summarize(
@@ -62,3 +79,15 @@ cliff.delta(releases_bproj$time_recall, releases_bproj$time_expert_recall)
 wilcox.test(releases_bproj$time_fmeasure, releases_bproj$time_expert_fmeasure, paired = TRUE)
 cliff.delta(releases_bproj$time_fmeasure, releases_bproj$time_expert_fmeasure)
 
+releases_bproj_melted %>%
+  filter(variable == "time_precision" | variable == "time_expert_precision") +
+  ggplot(aes(x=variable, y=value)) +
+    geom_boxplot() 
+  +
+    scale_x_discrete(labels=c("time_precision" = "Previous release",
+                              "time_expert_precision" =  "First commit")) +
+    #ylab("") + ylim(0.85,1) +
+    xlab("") + coord_flip() + 
+    theme_bw(base_size = 14) 
+  # +
+    ggsave("../paper/figs/rq_best_bp_precision.png", width = 8, height = 2)
