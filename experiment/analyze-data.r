@@ -77,30 +77,33 @@ cliff.delta(releases_bproj$time_precision, releases_bproj$time_expert_precision)
 wilcox.test(releases_bproj$time_recall, releases_bproj$time_expert_recall, paired = TRUE)
 cliff.delta(releases_bproj$time_recall, releases_bproj$time_expert_recall)
 
-wilcox.test(releases_bproj$time_fmeasure, releases_bproj$time_expert_fmeasure, paired = TRUE)
+wilcox.test(releases_bproj$time_fmeasure, releases_bproj$time_expert_fmeasure, paired = TRUE)$p.value
 cliff.delta(releases_bproj$time_fmeasure, releases_bproj$time_expert_fmeasure)
 
 releases_bproj_melted %>%
   filter(variable == "time_precision" | variable == "time_expert_precision") %>%
   ggplot(aes(x=variable, y=value)) +
-    geom_boxplot() +
-    xlab("") + coord_flip() +
-    scale_x_discrete(labels=c(
-      "time_precision" = "Previous release",
+    geom_boxplot() + coord_flip() +
+    ggtitle("Precision - time-based strategy: base release vs first commit") +
+    xlab("") + scale_x_discrete(labels=c(
+      "time_precision" = "Base release",
       "time_expert_precision" =  "First commit"
-    )) +
-    theme_bw(base_size = 14) +
-    ggsave("../paper/figs/rq_expert_bp_precision.png", width = 8, height = 2)
+    ), position = "top") +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0.5,1)) +
+    theme_bw(base_size = 14)
+ggsave("../paper/figs/rq_expert_bp_precision.png", width = 8, height = 2)
 
 releases_bproj_melted %>%
   filter(variable == "time_recall" | variable == "time_expert_recall") %>%
   ggplot(aes(x=variable, y=value)) +
-    geom_boxplot() +
-    xlab("") + coord_flip() +
-    scale_x_discrete(labels=c(
-      "time_recall" = "Previous release",
+    geom_boxplot() + coord_flip() +
+    ggtitle("Recall - time-based strategy: base release vs first commit") +
+    xlab("") + scale_x_discrete(labels=c(
+      "time_recall" = "Base release",
       "time_expert_recall" =  "First commit"
-    )) +
+    ), position="top") +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0.5,1)) +
     theme_bw(base_size = 14) +
-    ggsave("../paper/figs/rq_expert_bp_recall.png", width = 8, height = 2)
+    theme(plot.title.position = "plot")
+ggsave("../paper/figs/rq_expert_bp_recall.png", width = 8, height = 2)
     
