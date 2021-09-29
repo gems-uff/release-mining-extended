@@ -19,7 +19,7 @@ releases_bproj <- releases %>% group_by(project) %>%
     time_expert_precision = mean(time_expert_precision),
     time_expert_recall = mean(time_expert_recall),
     time_expert_fmeasure = mean(time_expert_fmeasure),
-  ) 
+  )
 
 releases_bproj_melted <- releases_bproj %>% 
   gather(variable, value, -project) %>%
@@ -38,7 +38,7 @@ releases_bproj_melted <- releases_bproj %>%
     "time_fmeasure"
   )))
 
-releases_bproj %>% 
+releases_summary <- releases_bproj %>% 
   summarize(
     time_precision = mean(time_precision),
     time_recall = mean(time_recall),
@@ -52,7 +52,8 @@ releases_bproj %>%
     time_expert_precision = mean(time_expert_precision),
     time_expert_recall = mean(time_expert_recall),
     time_expert_fmeasure = mean(time_expert_fmeasure),
-  ) *1 %>% print()
+  )
+releases_summary *1 %>% print()
 
 
 # Time vs Range
@@ -106,4 +107,43 @@ releases_bproj_melted %>%
     theme_bw(base_size = 14) +
     theme(plot.title.position = "plot")
 ggsave("../paper/figs/rq_expert_bp_recall.png", width = 8, height = 2)
-    
+
+
+releases_bproj %>% summarize(mean(time_precision))
+
+releases_summary$time_precision[1]
+
+releases %>%
+  #filter(time_precision < releases_summary$time_precision | time_recall < releases_summary$time_recall) %>%
+  ggplot(aes(x=time_precision, y=time_recall)) + #, size = commits)) +
+    ggtitle("Time-based strategy - precision vs recall") +
+    xlab("precision") + scale_x_continuous(labels = scales::percent, limits = c(0,1)) +
+    ylab("recall") + scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
+    geom_point(alpha = 0.25) +
+    theme_bw(base_size = 14)
+ggsave("../paper/figs/wa_time_scatter.png", width = 4, height = 4)
+
+releases %>%
+  #filter(range_precision < releases_summary$range_precision) %>%
+  ggplot(aes(x=range_precision, y=range_recall)) + #, size = commits)) +
+  ggtitle("Range-based strategy - precision vs recall") +
+  xlab("precision") + scale_x_continuous(labels = scales::percent, limits = c(0,1)) +
+  ylab("recall") + scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
+  geom_point(alpha = 0.25) +
+  theme_bw(base_size = 14)
+ggsave("../paper/figs/wa_range_scatter.png", width = 4, height = 4)
+
+
+# Investigate releases
+releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
+  select(project, name, commits, time_precision, time_recall, range_precision, range_recall) %>%
+  view()
+
+  
+releases %>% 
+  select(time_precision, time_recall, range_precision, range_recall) %>%
+  summary() 
+
+
+releases_bproj %>% filter(time_precision == min(time_precision))
+
