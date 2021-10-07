@@ -116,29 +116,83 @@ releases_summary$time_precision[1]
 releases %>%
   #filter(time_precision < releases_summary$time_precision | time_recall < releases_summary$time_recall) %>%
   ggplot(aes(x=time_precision, y=time_recall)) + #, size = commits)) +
-    ggtitle("Time-based strategy - precision vs recall") +
+    ggtitle("Time-based strategy", subtitle = "Precision vs recall") +
     xlab("precision") + scale_x_continuous(labels = scales::percent, limits = c(0,1)) +
     ylab("recall") + scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
-    geom_point(alpha = 0.25) +
+    geom_point(
+      data = subset(
+        releases, 
+        time_precision < 1 & time_precision > 0 & time_recall < 1 & time_recall > 0
+      ), alpha = 0.1, fill = "white", size = 5, stroke = 1, pch = 21
+    ) +
+    geom_point(alpha = 0.01, size = 5) +
     theme_bw(base_size = 14)
 ggsave("../paper/figs/wa_time_scatter.png", width = 4, height = 4)
 
 releases %>%
   #filter(range_precision < releases_summary$range_precision) %>%
   ggplot(aes(x=range_precision, y=range_recall)) + #, size = commits)) +
-  ggtitle("Range-based strategy - precision vs recall") +
+  ggtitle("Range-based strategy", subtitle = "Precision vs recall") +
   xlab("precision") + scale_x_continuous(labels = scales::percent, limits = c(0,1)) +
   ylab("recall") + scale_y_continuous(labels = scales::percent, limits = c(0,1)) +
-  geom_point(alpha = 0.25) +
+  #geom_point(alpha = 0.2, fill = "white", size = 5, stroke = 1, pch = 21) +
+  geom_point(alpha = 0.01, size = 5) +
   theme_bw(base_size = 14)
 ggsave("../paper/figs/wa_range_scatter.png", width = 4, height = 4)
 
 
 # Investigate releases
-releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
-  select(project, name, commits, time_precision, time_recall, range_precision, range_recall) %>%
-  view()
 
+## time-based zero
+releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
+  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
+#, base_releases, time_base_releases) # %>% count
+  
+
+releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
+  select(project) %>% distinct() # %>% count()
+
+47 / releases %>% count()
+
+## low precision, high recall
+
+### time-based
+releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
+  select(project, name, commits, time_commits, range_commits, time_precision, time_recall, range_precision, range_recall, base_releases, time_base_releases)
+
+releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
+  filter(base_releases == time_base_releases)
+  
+releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
+  select(project, name, commits, time_commits, range_commits, time_precision, time_recall, range_precision, range_recall, base_releases, time_base_releases) %>% view()
+
+releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
+  select(project, name, commits, base_releases, time_base_releases) %>% view()
+
+
+releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision > 0.1) %>% 
+  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
+
+
+releases %>% filter(time_precision > 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
+  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
+
+
+### range-based
+releases %>% filter(range_precision < 0.1 & range_recall == 1) %>% 
+  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
+
+
+## high precision, low recall
+
+releases %>% filter(time_precision == 1 & time_recall < 0.1) %>% 
+  select(project, name, commits, base_releases, time_base_releases) %>% view()
+  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall) %>% view()
+
+
+
+
+##
   
 releases %>% 
   select(time_precision, time_recall, range_precision, range_recall) %>%
