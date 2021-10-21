@@ -156,42 +156,52 @@ releases %>% filter(time_precision == 0 & time_recall == 0) %>%
 
 ## low precision, high recall
 
-### time-based
-releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
-  select(project, name, commits, time_commits, range_commits, time_precision, time_recall, range_precision, range_recall, base_releases, time_base_releases)
+releases %>%
+  filter((time_precision < 0.1 & time_recall == 1) | range_precision < 0.1) %>%
+  select(
+    project, name,
+    commits, time_commits, range_commits,
+    time_precision, time_recall,
+    range_precision, range_recall,
+    base_releases, time_base_releases
+  ) %>%
+  View()
 
-releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
-  filter(base_releases == time_base_releases)
-  
-releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
-  select(project, name, commits, time_commits, range_commits, time_precision, time_recall, range_precision, range_recall, base_releases, time_base_releases) %>% view()
-
-releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
-  select(project, name, commits, base_releases, time_base_releases) %>% view()
-
-
-releases %>% filter(time_precision < 0.1 & time_recall == 1 & range_precision > 0.1) %>% 
-  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
-
-
-releases %>% filter(time_precision > 0.1 & time_recall == 1 & range_precision < 0.1) %>% 
-  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
-
-
-### range-based
-releases %>% filter(range_precision < 0.1 & range_recall == 1) %>% 
-  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
+releases %>%
+  filter((time_precision < 0.1 & time_recall == 1) | range_precision < 0.1) %>%
+  select(
+    project, name,
+    base_releases, time_base_releases, range_base_releases
+  ) %>%
+  # View()
+  write.csv2("low_precision.csv")
 
 
 ## high precision, low recall
 
-releases %>% filter(time_precision == 1 & time_recall < 0.1) %>% 
-  select(project, name, commits, base_releases, time_base_releases) %>% view()
-  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall) %>% view()
+releases_hp_lr <- releases %>%
+  filter(time_precision == 1 & time_recall < 0.1) %>%
+  select(
+    project, name,
+    commits, time_commits, range_commits,
+    time_precision, time_recall,
+    range_precision, range_recall,
+    base_releases, time_base_releases
+  ) 
 
+releases_hp_lr %>% group_by(project) %>% summarise(project = first(project))
 
-
-
+releases %>%
+  filter(time_precision == 1 & time_recall < 0.1) %>%
+  select(
+    project, name,
+    commits, time_commits, range_commits,
+    time_precision, time_recall,
+    range_precision, range_recall,
+    base_releases, time_base_releases
+  ) %>%
+  
+  View()
 ##
   
 releases %>% 
