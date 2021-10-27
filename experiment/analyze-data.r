@@ -56,18 +56,197 @@ releases_summary <- releases_bproj %>%
 releases_summary *1 %>% print()
 
 
-# Time vs Range
+# RQ1. Time vs Range
 wilcox.test(releases_bproj$time_precision, releases_bproj$range_precision, paired = TRUE)$p.value %>% round(4)
 wilcox.test(releases_bproj$time_recall, releases_bproj$range_recall, paired = TRUE)
 wilcox.test(releases_bproj$time_fmeasure, releases_bproj$range_fmeasure, paired = TRUE)
 
-# Time vs Naive
+releases_bproj_melted %>%
+  filter(variable == "time_precision" | variable == "range_precision") %>%
+  ggplot(aes(x = variable, y = value)) +
+    coord_flip() +
+    geom_boxplot() + 
+    ggtitle("Precision - time-based vs range-based strategy") +
+    xlab("") + 
+    scale_x_discrete(position = "top", labels = c(
+      "time_precision" = "time-based",
+      "range_precision" =  "range-based"
+    )) +
+    ylab("precision") +
+    scale_y_continuous(labels = scales::percent, limits = c(0.7,1)) +
+    theme_bw(base_size = 12) 
+ggsave("../paper/figs/rq_best_bp_precision.png", width = 8, height = 2)
+
+releases_bproj_melted %>%
+  filter(variable == "time_recall" | variable == "range_recall") %>%
+  ggplot(aes(x = variable, y = value)) +
+    coord_flip() +
+    geom_boxplot() + 
+    ggtitle("Recall - time-based vs range-based strategy") +
+    xlab("") + 
+    scale_x_discrete(position = "top", labels = c(
+      "time_recall" = "time-based",
+      "range_recall" =  "range-based"
+    )) +
+    ylab("recall") +
+    scale_y_continuous(labels = scales::percent, limits = c(0.7,1)) +
+    theme_bw(base_size = 12) 
+ggsave("../paper/figs/rq_best_bp_recall.png", width = 8, height = 2)
+
+# RQ2.a
+
+releases$pwork <- 100 * releases$committers / releases$commits
+pwork_treshold <- mean(releases$pwork)
+
+
+releases_few_committers_bproj <- releases %>% 
+  filter(pwork < pwork_treshold) %>%
+  group_by(project) %>%
+  summarise(time_precision = mean(time_precision),
+            time_recall = mean(time_recall),
+            time_fmeasure = mean(time_fmeasure),
+            range_precision = mean(range_precision),
+            range_recall = mean(range_recall),
+            range_fmeasure = mean(range_fmeasure),
+            releases = n())
+
+releases_many_committers_bproj <- releases %>% 
+  filter(pwork >= pwork_treshold) %>%
+  group_by(project) %>% 
+  summarise(time_precision = mean(time_precision),
+            time_recall = mean(time_recall),
+            time_fmeasure = mean(time_fmeasure),
+            range_precision = mean(range_precision),
+            range_recall = mean(range_recall),
+            range_fmeasure = mean(range_fmeasure),
+            releases = n())
+
+releases_committers_bproj <- releases_few_committers_bproj %>% 
+  inner_join(releases_many_committers_bproj, by = "project",
+             suffix = c(".few", ".many"))
+
+
+
+# RQ2.b
+
+base_treshold <- mean(releases$base_releases_qnt)
+
+releases_few_bases_bproj <- releases %>% 
+  filter(base_releases_qnt < base_treshold) %>%
+  group_by(project) %>% 
+  summarise(time_precision = mean(time_precision),
+            time_recall = mean(time_recall),
+            time_fmeasure = mean(time_fmeasure),
+            range_precision = mean(range_precision),
+            range_recall = mean(range_recall),
+            range_fmeasure = mean(range_fmeasure),
+            releases = n())
+
+releases_many_bases_bproj <- releases %>% 
+  filter(base_releases_qnt > base_treshold) %>%
+  group_by(project) %>% 
+  summarise(time_precision = mean(time_precision),
+            time_recall = mean(time_recall),
+            time_fmeasure = mean(time_fmeasure),
+            range_precision = mean(range_precision),
+            range_recall = mean(range_recall),
+            range_fmeasure = mean(range_fmeasure),
+            releases = n())
+
+releases_bases_bproj <- releases_few_bases_bproj %>% 
+  inner_join(releases_many_bases_bproj, by = "project",
+      suffix = c(".few", ".many"))
+
+View(releases_bases_bproj_melted)
+
+releases_bases_bproj_melted <- releases_bases_bproj %>% 
+  select(-releases.few, -releases.many) %>%
+  gather(variable, value, -project) %>%
+  mutate(
+    group = case_when(grepl("few", variable) ~ "few", TRUE ~ "many"),
+    strategy = case_when(grepl("time", variable) ~ "time",
+                               grepl("range", variable) ~ "range",
+                               TRUE ~ "fmeasure"),
+    variable = factor(variable, levels = c(
+      "time_precision.many",
+      "time_recall.many",
+      "time_fmeasure.many",
+      "range_precision.many",
+      "range_recall.many",
+      "range_fmeasure.many",
+      "time_precision.few",
+      "time_recall.few",
+      "time_fmeasure.few",
+      "range_precision.few",
+      "range_recall.few",
+      "range_fmeasure.few"
+    ))
+  )
+
+100 * releases_bases_bproj %>%
+  summarise(
+    time_precision.few = mean(time_precision.few),
+    time_precision.many = mean(time_precision.many),
+    range_precision.few = mean(range_precision.few),
+    range_precision.many = mean(range_precision.many),
+    time_recall.few = mean(time_recall.few),
+    time_recall.many = mean(time_recall.many),
+    range_recall.few = mean(range_recall.few),
+    range_recall.many = mean(range_recall.many),
+    time_fmeasure.few = mean(time_fmeasure.few),
+    time_fmeasure.many = mean(time_fmeasure.many),
+    range_fmeasure.few = mean(range_fmeasure.few),
+    range_fmeasure.many = mean(range_fmeasure.many),
+  ) %>% round(4)
+
+releases_bases_bproj_melted %>%
+  filter(variable == "time_recall.few" | variable == "time_recall.many") %>%
+  ggplot(aes(x = variable, y = value)) +
+    ggtitle("Recall - time-based strategy: single vs multiple base releases") +
+    geom_boxplot() +
+    coord_flip() +
+    scale_x_discrete(labels = c(
+      "time_recall.many" = "multiple",
+      "time_recall.few" =  "single"
+    ), position = "top") +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    xlab("") +
+    theme_bw(base_size = 12)
+ggsave("../paper/figs/rq_factors_base_bp_recall.png", width = 8, height = 2)
+
+# RQ3. Time vs Naive
 wilcox.test(releases_bproj$time_precision, releases_bproj$time_naive_precision, paired = TRUE)
 wilcox.test(releases_bproj$time_recall, releases_bproj$time_naive_recall, paired = TRUE)
 wilcox.test(releases_bproj$time_fmeasure, releases_bproj$time_naive_fmeasure, paired = TRUE)
 
+releases_bproj_melted %>%
+  filter(variable == "time_precision" | variable == "time_naive_precision") %>%
+  ggplot(aes(x=variable, y=value)) +
+    geom_boxplot() + coord_flip() +
+    ggtitle("Precision - time-based strategy: reachable vs all commits") +
+    xlab("") + scale_x_discrete(labels = c(
+      "time_precision" = "reachable",
+      "time_naive_precision" = "all"
+    ), position = "top") +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    theme_bw(base_size = 12)
+ggsave("../paper/figs/rq_naive_bp_precision.png", width = 8, height = 2)
 
-# Time vs Expert
+releases_bproj_melted %>%
+  filter(variable == "time_recall" | variable == "time_naive_recall") %>%
+  ggplot(aes(x=variable, y=value)) +
+    geom_boxplot() + coord_flip() +
+    ggtitle("Recall - time-based strategy: reachable vs all commits") +
+    xlab("") + scale_x_discrete(labels = c(
+      "time_recall" = "reachable",
+      "time_naive_recall" = "all"
+    ), position = "top") +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    theme_bw(base_size = 12)
+ggsave("../paper/figs/rq_naive_bp_recall.png", width = 8, height = 2)
+
+
+# RQ4. Time vs Expert
 shapiro.test(releases_bproj$time_expert_precision)
 shapiro.test(releases_bproj$time_expert_recall)
 shapiro.test(releases_bproj$time_expert_fmeasure)
@@ -91,7 +270,7 @@ releases_bproj_melted %>%
       "time_expert_precision" =  "First commit"
     ), position = "top") +
     ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0.5,1)) +
-    theme_bw(base_size = 14)
+    theme_bw(base_size = 12)
 ggsave("../paper/figs/rq_expert_bp_precision.png", width = 8, height = 2)
 
 releases_bproj_melted %>%
@@ -104,7 +283,7 @@ releases_bproj_melted %>%
       "time_expert_recall" =  "First commit"
     ), position="top") +
     ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0.5,1)) +
-    theme_bw(base_size = 14) +
+    theme_bw(base_size = 12) +
     theme(plot.title.position = "plot")
 ggsave("../paper/figs/rq_expert_bp_recall.png", width = 8, height = 2)
 
@@ -129,6 +308,7 @@ releases %>%
     theme_bw(base_size = 14)
 ggsave("../paper/figs/wa_time_scatter.png", width = 4, height = 4)
 
+
 releases %>%
   #filter(range_precision < releases_summary$range_precision) %>%
   ggplot(aes(x=range_precision, y=range_recall)) + #, size = commits)) +
@@ -144,13 +324,25 @@ ggsave("../paper/figs/wa_range_scatter.png", width = 4, height = 4)
 # Investigate releases
 
 ## time-based zero
-releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
-  select(project, name, commits, time_commits, time_precision, time_recall, range_precision, range_recall)
+releases_lpr <- releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
+  select(
+    project, name, 
+    base_releases, time_base_releases,
+    commits, time_commits, 
+    time_precision, time_recall,
+    range_precision, range_recall
+  )
 #, base_releases, time_base_releases) # %>% count
+
+releases_lpr %>% View()
+
+releases_lpr %>% filter(project == "sebastianbergmann/phpunit") %>%
+  select(project, name)
+
+releases_lpr %>% filter(project == "sebastianbergmann/phpunit") %>% View()
   
 
-releases %>% filter(time_precision == 0 & time_recall == 0) %>% 
-  select(project) %>% distinct() # %>% count()
+releases_lpr %>% select(project) %>% distinct()
 
 47 / releases %>% count()
 
@@ -183,31 +375,12 @@ releases_hp_lr <- releases %>%
   filter(time_precision == 1 & time_recall < 0.1) %>%
   select(
     project, name,
+    base_releases, time_base_releases,
     commits, time_commits, range_commits,
     time_precision, time_recall,
-    range_precision, range_recall,
-    base_releases, time_base_releases
-  ) 
+    range_precision, range_recall
+  )
+
+releases_hp_lr %>% View()
 
 releases_hp_lr %>% group_by(project) %>% summarise(project = first(project))
-
-releases %>%
-  filter(time_precision == 1 & time_recall < 0.1) %>%
-  select(
-    project, name,
-    commits, time_commits, range_commits,
-    time_precision, time_recall,
-    range_precision, range_recall,
-    base_releases, time_base_releases
-  ) %>%
-  
-  View()
-##
-  
-releases %>% 
-  select(time_precision, time_recall, range_precision, range_recall) %>%
-  summary() 
-
-
-releases_bproj %>% filter(time_precision == min(time_precision))
-
