@@ -126,6 +126,85 @@ releases_committers_bproj <- releases_few_committers_bproj %>%
              suffix = c(".few", ".many"))
 
 
+releases_committers_bproj_melted <- releases_committers_bproj %>% 
+  select(-releases.few, -releases.many) %>%
+  gather(variable, value, -project) %>%
+  mutate(strategy = case_when(grepl("time", variable) ~ "time",
+                              grepl("range", variable) ~ "range",
+                              TRUE ~ "fmeasure"),
+         group = case_when(grepl("few", variable) ~ "few", TRUE ~ "many")) %>%
+  mutate(strategy = factor(strategy, levels = c("time",
+                                                "range")),
+         group = factor(group, levels = c("many", "few")),
+         variable = factor(variable, levels=c("time_precision.many",
+                                              "time_precision.few",
+                                              "time_recall.many",
+                                              "time_recall.few",
+                                              "range_precision.many",
+                                              "range_precision.few",
+                                              "range_recall.many",
+                                              "range_recall.few")))
+
+100 * releases_committers_bproj %>%
+  summarise(
+    time_precision.few = mean(time_precision.few),
+    time_precision.many = mean(time_precision.many),
+    range_precision.few = mean(range_precision.few),
+    range_precision.many = mean(range_precision.many),
+    time_recall.few = mean(time_recall.few),
+    time_recall.many = mean(time_recall.many),
+    range_recall.few = mean(range_recall.few),
+    range_recall.many = mean(range_recall.many),
+    time_fmeasure.few = mean(time_fmeasure.few),
+    time_fmeasure.many = mean(time_fmeasure.many),
+    range_fmeasure.few = mean(range_fmeasure.few),
+    range_fmeasure.many = mean(range_fmeasure.many)
+  ) %>% round(4)
+
+releases_committers_bproj_melted %>%
+  filter(
+    variable == "time_precision.few" | variable == "time_precision.many" |
+    variable == "range_precision.few" | variable == "range_precision.many"
+  ) %>%
+  ggplot(aes(x=variable, y=value)) +
+    ggtitle("Precision - few vs many developers") +
+    geom_boxplot() +
+    coord_flip() +
+    scale_x_discrete(labels=c(
+      "time_precision.many" = "many",
+      "time_precision.few" =  "few",
+      "range_precision.many" = "many",
+      "range_precision.few" =  "few"
+    ), position = "top") +
+    facet_grid(rows = vars(strategy), scales = "free",
+        switch = "y", labeller = as_labeller(c(
+      "time" = "time-based",
+      "range" = "range-based"
+    ))) +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0.75, 1)) +
+    xlab("") +
+    theme_bw(base_size = 12)
+ggsave("../paper/figs/rq_factors_bp_collaborators_precision.png", width = 8, height = 3)
+
+releases_committers_bproj_melted %>%
+  filter(variable == "time_recall.few" | variable == "time_recall.many") %>%
+  ggplot(aes(x=variable, y=value)) +
+    ggtitle("Recall - few vs many developers") +
+    geom_boxplot() +
+    coord_flip() +
+    scale_x_discrete(labels=c(
+      "time_recall.many" = "many",
+      "time_recall.few" =  "few"
+    ), position = "top") +
+    facet_grid(rows = vars(strategy), scales = "free",
+        switch = "y", labeller = as_labeller(c(
+      "time" = "time-based",
+      "range" = "range-based"
+    ))) +
+    ylab("") + scale_y_continuous(labels = scales::percent, limits = c(0.4, 1)) +
+    xlab("") +
+    theme_bw(base_size = 12)
+ggsave("../paper/figs/rq_factors_bp_collaborators_recall.png", width = 8, height = 2)
 
 # RQ2.b
 
