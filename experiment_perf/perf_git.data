@@ -1,0 +1,41 @@
+# Performance data for elastic search project using git
+real    0m1.646s
+user    0m1.430s
+sys     0m0.218s
+
+real    0m1.656s
+user    0m1.439s
+sys     0m0.219s
+
+real    0m1.700s
+user    0m1.466s
+sys     0m0.236s
+
+real    0m1.709s
+user    0m1.459s
+sys     0m0.252s
+
+real    0m1.664s
+user    0m1.446s
+sys     0m0.220s
+
+real    0m1.654s
+user    0m1.450s
+sys     0m0.206s
+
+real    0m1.669s
+user    0m1.426s
+sys     0m0.245s
+
+real    0m1.647s
+user    0m1.444s
+sys     0m0.205s
+
+real    0m1.706s
+user    0m1.450s
+sys     0m0.257s
+
+real    0m1.681s
+user    0m1.434s
+sys     0m0.248s
+
