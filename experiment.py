@@ -68,6 +68,11 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
                 time_naive_base_releases = [release.name.value for release in (time_naive_release_set[release.name].base_releases or [])]
                 time_expert_base_releases = [release.name.value for release in (time_expert_release_set[release.name].base_releases or [])]
 
+                if range_base_releases:
+                    cycle = release.time - range_base_releases[0]
+                else:
+                    cycle = None
+
                 stats.append({
                     "project": name,
                     "name": release.name.value,
@@ -78,6 +83,7 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
                     "lang": lang,
                     "head": str(release.head.id),
                     "time": release.time,
+                    "cycle": cycle,
                     "committers": len(path_release_set[release.name].committers),
                     "commits": len(path_commits),
                     "merges": len(path_release_set[release.name].merges),
