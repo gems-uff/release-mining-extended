@@ -68,8 +68,10 @@ def analyze_project(name, lang, suffix_exception_catalog, release_exception_cata
                 time_naive_base_releases = [release.name.value for release in (time_naive_release_set[release.name].base_releases or [])]
                 time_expert_base_releases = [release.name.value for release in (time_expert_release_set[release.name].base_releases or [])]
 
+                if len(range_release_set[release.name].base_releases) > 1:
+                    print("WARN")
                 if range_base_releases:
-                    cycle = release.time - range_base_releases[0]
+                    cycle = release.time - range_release_set[release.name].base_releases[0].time
                 else:
                     cycle = None
 
