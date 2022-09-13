@@ -14,6 +14,13 @@
                 "REPOPATH": "D:/repos/research/release/repos",
                 "PYTHONPATH": "D:/repos/research/release/releasy${pathSeparator}${env:PYTHONPATH}"
             }
+        },
+        {
+            "name": "Experiment Baseline",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/experiment_baseline.py",
+            "console": "integratedTerminal",
         }
     ]
 }

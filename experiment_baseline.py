@@ -82,7 +82,7 @@ if __name__ == "__main__":
             print(project_path, output_file, name, len(commits))
             with open(output_file, 'w') as output:
                 for commit in sorted(commits, key=lambda commit: commit.hashcode):
-                    output.write(commit.hashcode)
+                    output.write(f"{commit.hashcode}\n")
             
 
     
