@@ -74,11 +74,15 @@ baseline_tests = {
 if __name__ == "__main__":
     from exceptions import release_exception_catalog, suffix_exception_catalog
 
-    for project_path, release_names in baseline_tests:
+    for project_path, release_names in baseline_tests.items():
         releases = analyze_project(project_path, "None", suffix_exception_catalog, release_exception_catalog)
         for name in release_names:
             commits = set(releases[name].commits)
-            print(project_path, name, len(commits))
-  
+            output_file = f"./data/rsamples/{project_path.replace('/', '-')}-{name}.releasy"
+            print(project_path, output_file, name, len(commits))
+            with open(output_file, 'w') as output:
+                for commit in sorted(commits, key=lambda commit: commit.hashcode):
+                    output.write(commit.hashcode)
+            
 
     
