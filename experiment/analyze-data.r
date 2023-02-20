@@ -1,3 +1,4 @@
+# %%
 library("tidyverse")
 library("effsize")
 options(digits=4)
@@ -55,8 +56,9 @@ releases_summary <- releases_bproj %>%
   )
 releases_summary *1 %>% print()
 
-
+# %%
 # RQ1. Time vs Range
+
 wilcox.test(releases_bproj$time_precision, releases_bproj$range_precision, paired = TRUE)$p.value %>% round(4)
 wilcox.test(releases_bproj$time_recall, releases_bproj$range_recall, paired = TRUE)
 wilcox.test(releases_bproj$time_fmeasure, releases_bproj$range_fmeasure, paired = TRUE)
@@ -93,6 +95,7 @@ releases_bproj_melted %>%
     theme_bw(base_size = 12) 
 ggsave("../paper/figs/rq_best_bp_recall.png", width = 8, height = 2)
 
+# %%
 # RQ2.a
 
 releases$pwork <- 100 * releases$committers / releases$commits
@@ -230,6 +233,7 @@ releases_committers_bproj_melted %>%
     theme_bw(base_size = 12)
 ggsave("../paper/figs/rq_factors_bp_collaborators_recall.png", width = 8, height = 2)
 
+# %%
 # RQ2.b
 
 base_treshold <- mean(releases$base_releases_qnt)
@@ -317,11 +321,13 @@ releases_bases_bproj_melted %>%
     theme_bw(base_size = 12)
 ggsave("../paper/figs/rq_factors_base_bp_recall.png", width = 8, height = 2)
 
-#%
+# %%
 # RQ2.c
 
-releases_wcy <- releases %>% na.omit()
-cycle_treshold <- mean(releases_wcy$cycle_sec)
+releases_wcy <- releases %>% na.omit() %>%
+  mutate(cycle = cycle_sec / 60 / 60 / 24)
+cycle_treshold <- mean(releases_wcy$cycle)
+cycle_treshold
 
 releases_rapid_bproj <- releases_wcy %>% 
   filter(cycle_sec < cycle_treshold) %>%
